@@ -1,10 +1,15 @@
 const { ShareServiceClient } = require("@azure/storage-file-share");
+const fs = require('fs');
+const path = require('path');
+const pdf = require('pdf-parse');
 require('dotenv').config();
 
 const connectionString = process.env.AZURE_STORAGE_CONNECTION_STRING;
 const serviceClient = ShareServiceClient.fromConnectionString(connectionString);
-const directoryName = `user1`;
 const shareName = `assets`;
+const directoryName = `user1`;
+const fileName = 'mystory'
+const imageFilePath = 'profile'
 const directoryClient = serviceClient.getShareClient(shareName).getDirectoryClient(directoryName)
 
 //make share and directory
@@ -97,5 +102,80 @@ async function ListShares() {
     }
 }
 
+// [Node.js only] A helper method used to read a Node.js readable stream into a Buffer
+async function streamToBuffer(readableStream) {
+    return new Promise((resolve, reject) => {
+      const chunks = [];
+      readableStream.on("data", (data) => {
+        chunks.push(data instanceof Buffer ? data : Buffer.from(data));
+      });
+      readableStream.on("end", () => {
+        resolve(Buffer.concat(chunks));
+      });
+      readableStream.on("error", reject);
+    });
+  }
+  
+  async function downloadFileAndConvertToString() {
+    try {
+      const fileClient = serviceClient
+        .getShareClient(shareName)
+        .getDirectoryClient(directoryName)
+        .getFileClient(fileName);
+  
+      const downloadFileResponse = await fileClient.download();
+       console.log(
+    `Downloaded file content: ${(
+      await streamToBuffer(downloadFileResponse.readableStreamBody)
+    ).toString()}`
+  );
+    } catch(error){
+      console.log(error)
+    }
+  }
+
+  //read text content from a pdf file
+  const pdfFilePath = './resources/mystory.pdf'
+  async function readPDFContent(filePath) {
+    try {
+        const dataBuffer = fs.readFileSync(filePath);
+        const data = await pdf(dataBuffer);
+        return data.text;
+    } catch (err) {
+        console.error('Error reading PDF:', err);
+        throw err;
+    }
+}
+
+async function UploadFileToDirectory(directoryClient, filePath) {
+  try {
+      // Read the content of the PDF file
+      const content = await readPDFContent(filePath);
+      const fileName = path.basename(filePath, path.extname(filePath)); // Use the PDF file name without extension
+
+      const fileClient = directoryClient.getFileClient(fileName);
+      const fileExists = await fileClient.exists();
+      if(!fileExists){
+        await fileClient.create(content.length);
+        console.log(`Create file ${fileName} successfully`);
+      }
+
+      // Convert content to buffer and get the byte length
+      const contentBuffer = Buffer.from(content, 'utf-8');
+      const contentLength = contentBuffer.byteLength;
+
+      // Upload file range with correct content length
+      await fileClient.uploadRange(contentBuffer, 0, contentLength);
+      console.log(`Upload file range to ${fileName} successfully`);
+  } catch (err) {
+      console.log(err);
+  }
+}
+
+async function UploadImageAndReadUrl(){
+    
+}
+
+
 //performm action
-ListFilesAndDirectory()
+downloadFileAndConvertToString()

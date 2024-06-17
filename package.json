@@ -11,6 +11,7 @@
   "description": "",
   "dependencies": {
     "@azure/storage-file-share": "^12.23.0",
-    "dotenv": "^16.4.5"
+    "dotenv": "^16.4.5",
+    "pdf-parse": "^1.1.1"
   }
 }
