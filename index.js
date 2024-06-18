@@ -133,6 +133,16 @@ async function downloadFileAndConvertToString() {
   }
 }
 
+async function deleteFile() {
+  const fileName = 'example' //enter fiileName here
+  const fileClient = serviceClient
+    .getShareClient(shareName)
+    .getDirectoryClient(directoryName)
+    .getFileClient(fileName);
+    await fileClient.delte()
+    console.log(`File ${fileName} deleted successfully`)
+}
+
 //read text content from a pdf file
 const pdfFilePath = './resources/mystory.pdf'
 async function readPDFContent(filePath) {
@@ -177,18 +187,18 @@ async function UploadImageAndReadUrl() {
   const fileClient = directoryClient.getFileClient(fileName);
   const fileExists = await fileClient.exists()
 
-  if(!fileExists) {
-      // Read the file content into a buffer
-      const fileContent = fs.readFileSync(filePath);
-     // Create the file in Azure File Share
-     const fileSize = fileContent.length;
-     
-     // Create the file in Azure File Share
-     await fileClient.create(fileSize);
+  if (!fileExists) {
+    // Read the file content into a buffer
+    const fileContent = fs.readFileSync(filePath);
+    // Create the file in Azure File Share
+    const fileSize = fileContent.length;
+
+    // Create the file in Azure File Share
+    await fileClient.create(fileSize);
 
     // Upload the file content
     await fileClient.uploadRange(fileContent, 0, fileSize);
-  }else{
+  } else {
     console.log('File already exists, do you want to change it?')
   }
   // Construct and print the file URL
