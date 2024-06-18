@@ -136,7 +136,7 @@ async function downloadFileAndConvertToString() {
 
 async function deleteFile() {
   try {
-    const fileName = 'example' //enter fiileName here
+    const fileName = 'videosafe' //enter fiileName here
     const fileClient = serviceClient
       .getShareClient(shareName)
       .getDirectoryClient(directoryName)
@@ -237,4 +237,4 @@ async function GetImageFile() {
 
 
 //performm action
-GetImageFile()
+deleteFile()
