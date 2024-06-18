@@ -1,6 +1,4 @@
 
-
-
 const { ShareServiceClient } = require("@azure/storage-file-share");
 const fs = require('fs');
 const path = require('path');
@@ -216,7 +214,7 @@ async function streamToFile(readableStream, filePath) {
     const writeableStream = fs.createWriteStream(filePath)
     readableStream.pipe(writeableStream)
 
-    WritableStream.on('data', resolve)
+    writeableStream.on('data', resolve)
     readableStream.on('data', resolve)
     readableStream.on("error", reject);
   });
@@ -239,4 +237,4 @@ async function GetImageFile() {
 
 
 //performm action
-ListShares()
+GetImageFile()
