@@ -1,3 +1,6 @@
+
+
+
 const { ShareServiceClient } = require("@azure/storage-file-share");
 const fs = require('fs');
 const path = require('path');
@@ -134,13 +137,17 @@ async function downloadFileAndConvertToString() {
 }
 
 async function deleteFile() {
-  const fileName = 'example' //enter fiileName here
-  const fileClient = serviceClient
-    .getShareClient(shareName)
-    .getDirectoryClient(directoryName)
-    .getFileClient(fileName);
+  try {
+    const fileName = 'example' //enter fiileName here
+    const fileClient = serviceClient
+      .getShareClient(shareName)
+      .getDirectoryClient(directoryName)
+      .getFileClient(fileName);
     await fileClient.delte()
     console.log(`File ${fileName} deleted successfully`)
+  } catch (error) {
+    console.log('File does not exist')
+  }
 }
 
 //read text content from a pdf file
@@ -181,7 +188,7 @@ async function UploadFileToDirectory(directoryClient, filePath) {
   }
 }
 
-async function UploadImageAndReadUrl() {
+async function UploadImageFile() {
   const fileName = 'profile'
   const filePath = './resources/image.png'
   const fileClient = directoryClient.getFileClient(fileName);
@@ -201,14 +208,35 @@ async function UploadImageAndReadUrl() {
   } else {
     console.log('File already exists, do you want to change it?')
   }
-  // Construct and print the file URL
-  const fileUrl = `https://${accountName}.file.core.windows.net/${shareName}/${directoryName}/${fileName}`;
-  console.log(`File ${fileName} uploaded successfully to ${shareName}/${directoryName}`);
-  console.log(`File URL: ${fileUrl}`);
+
+}
+
+async function streamToFile(readableStream, filePath) {
+  return new Promise((resolve, reject) => {
+    const writeableStream = fs.createWriteStream(filePath)
+    readableStream.pipe(writeableStream)
+
+    WritableStream.on('data', resolve)
+    readableStream.on('data', resolve)
+    readableStream.on("error", reject);
+  });
+
+}
+
+async function GetImageFile() {
+  const fileName = 'profile'
+  const filePath = './resources/profileimage.png'
+  const fileClient = directoryClient.getFileClient(fileName)
+
+  const downloadFileResponse = await fileClient.download();
+  await streamToFile(downloadFileResponse.readableStreamBody , filePath);
+
+  console.log('File downloaded successfully')
 
 
 }
 
 
+
 //performm action
-UploadImageAndReadUrl()
+ListShares()
