@@ -1,32 +1,16 @@
 
-const { ShareServiceClient } = require("@azure/storage-file-share");
 const fs = require('fs');
 const path = require('path');
 const pdf = require('pdf-parse');
-require('dotenv').config();
+const { listShares } = require("./utils/listShares");
+const { serviceClient } = require("./utils/connectionString");
 
-const connectionString = process.env.AZURE_STORAGE_CONNECTION_STRING;
-const serviceClient = ShareServiceClient.fromConnectionString(connectionString);
+
 const shareName = `assets`;
 const directoryName = `user1`;
 const accountName = 'emmachid2'
 const directoryClient = serviceClient.getShareClient(shareName).getDirectoryClient(directoryName)
 
-//make share and directory
-async function MakeShareAndDirectory() {
-  try {
-    const shareClient = serviceClient.getShareClient(shareName);
-    await shareClient.create();
-    console.log(`Create share ${shareName} successfully`);
-
-    const directoryClient = shareClient.getDirectoryClient(directoryName);
-    await directoryClient.create();
-    console.log(`Create directory ${directoryName} successfully`);
-  }
-  catch (err) {
-    console.log(err);
-  }
-}
 
 //create a file and upload to directory
 async function UploadFileToDirectory() {
@@ -73,33 +57,9 @@ async function MakeShareAndDirectory() {
   }
 }
 
-async function ListFilesAndDirectory() {
-  let dirIter = directoryClient.listFilesAndDirectories();
-  let i = 1;
-  for await (const item of dirIter) {
-    if (item.kind === "directory") {
-      console.log(`${i} - directory\t: ${item.name}`);
-    } else {
-      console.log(`${i} - file\t: ${item.name}`);
-    }
-    i++;
-  }
-}
 
 
-//list shares in the storage account
-async function ListShares() {
-  try {
-    let shareIter = serviceClient.listShares();
-    let i = 1;
-    for await (const share of shareIter) {
-      console.log(`Share${i}: ${share.name}`);
-      i++;
-    }
-  } catch (error) {
-    console.log(error)
-  }
-}
+
 
 // [Node.js only] A helper method used to read a Node.js readable stream into a Buffer
 async function streamToBuffer(readableStream) {
@@ -134,19 +94,7 @@ async function downloadFileAndConvertToString() {
   }
 }
 
-async function deleteFile() {
-  try {
-    const fileName = 'videosafe' //enter fiileName here
-    const fileClient = serviceClient
-      .getShareClient(shareName)
-      .getDirectoryClient(directoryName)
-      .getFileClient(fileName);
-    await fileClient.delte()
-    console.log(`File ${fileName} deleted successfully`)
-  } catch (error) {
-    console.log('File does not exist')
-  }
-}
+
 
 //read text content from a pdf file
 const pdfFilePath = './resources/mystory.pdf'
@@ -237,4 +185,4 @@ async function GetImageFile() {
 
 
 //performm action
-deleteFile()
+listShares(serviceClient)
